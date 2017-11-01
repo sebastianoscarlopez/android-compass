@@ -1,4 +1,6 @@
 # android-compass
+IN DEVELOPMENT
+ 
 Similar to compass but the direction is a coordinate
 
 It shows th google map in current location and a arrow in destination direction

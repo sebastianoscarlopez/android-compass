@@ -5,5 +5,5 @@ package ar.com.sebas.compass;
  */
 
 public interface ICompassListener {
-    void onChangeDirectioin(float direction);
+    void onChangeDirection(float direction);
 }

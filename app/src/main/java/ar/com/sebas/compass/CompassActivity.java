@@ -3,28 +3,25 @@ package ar.com.sebas.compass;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.os.Bundle;
-import android.util.Log;
-import android.widget.TextView;
-
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
-public class CompassActivity extends FragmentActivity implements OnMapReadyCallback, ICompassListener, GoogleMap.OnMyLocationChangeListener {
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+
+public class CompassActivity extends FragmentActivity implements OnMapReadyCallback, ICompassListener {
 
     private GoogleMap mMap;
-    private Location location = null;
-    private Object mLocationRequest;
     private Compass compass;
-    private LatLng current;
+    private LocationHelper locationHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,20 +32,26 @@ public class CompassActivity extends FragmentActivity implements OnMapReadyCallb
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, 200);
+        }
+        if (ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{ACCESS_COARSE_LOCATION}, 200);
+        }
         compass = new Compass(this, this);
-        compass.setAzimuthMinimumDiff(1);
+        compass.setAzimuthMinimumDiff(0.25f);
     }
 
     @Override
     protected void onStart() {
-        super.onStart();
         compass.start();
+        super.onStart();
     }
 
     @Override
     protected void onStop() {
-        super.onStop();
         compass.stop();
+        super.onStop();
     }
 
     /**
@@ -72,38 +75,25 @@ public class CompassActivity extends FragmentActivity implements OnMapReadyCallb
                     new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                     1);
         }
-        mMap.setMyLocationEnabled(true);
-        mMap.setOnMyLocationChangeListener(this);
-        mLocationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(10000)
-                .setFastestInterval(1000);
-        
-    }
-
-    @Override
-    public void onMyLocationChange(Location location) {
-        this.location = location;
-        if(this.location != null) {
-            current = new LatLng(location.getLatitude(), location.getLongitude());
-        }
+        mMap.setMyLocationEnabled(false);
+        locationHelper = new LocationHelper(this);
     }
 
     @Override
     public void onChangeDirection(float direction) {
-        if(current != null)
-        {
-            CameraPosition googlePlex = CameraPosition.builder()
-                    .target(current)
-                    .zoom(15)
-                    .bearing(direction)
-                    .build();
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(googlePlex));
+        if(locationHelper != null) {
+            Location location = locationHelper.getLastLocation();
+            if(location != null) {
+                LatLng current = new LatLng(location.getLatitude(),
+                        location.getLongitude());
+
+                CameraPosition googlePlex = CameraPosition.builder()
+                        .target(current)
+                        .zoom(15)
+                        .bearing(direction)
+                        .build();
+                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(googlePlex));
+            }
         }
-    }
-
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-
     }
 }

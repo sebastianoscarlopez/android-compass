@@ -24,10 +24,22 @@
         map:uiZoomGestures="false"
         />
     <ImageView
+        android:id="@+id/arrow"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:src="@drawable/arrow"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
+        />
+    <Button
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/circle"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_margin="50dp"
+        android:text="+"
+        android:textSize="30sp"
+        android:onClick="openSearch"
         />
 </RelativeLayout>
